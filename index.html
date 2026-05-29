@@ -1,351 +1,385 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-950">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EdgeAero Shield | Aerospace Control</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <title>EdgeAero Shield | Mission Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        cyber: {
+                            bg: '#020617',
+                            card: '#0b1329',
+                            cyan: '#00f2ff',
+                            green: '#39ff14',
+                            red: '#ff3131',
+                            border: 'rgba(0, 242, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-dark: #05070a;
-            --card-bg: #0f131a;
-            --neon-blue: #00f2ff;
-            --neon-green: #39ff14;
-            --neon-red: #ff3131;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: #ffffff;
-            font-family: 'Rajdhani', sans-serif;
-            min-height: 100vh;
-        }
-
-        .font-orbitron { font-family: 'Orbitron', sans-serif; }
-        
-        /* Navbar */
-        .navbar {
-            background: rgba(15, 19, 26, 0.95);
-            border-bottom: 1px solid var(--neon-blue);
-            backdrop-filter: blur(10px);
-        }
-
-        /* Page Transitions */
-        .page-section { display: none; padding-top: 50px; }
-        .page-active { display: block; }
-
-        /* Hero Styling */
-        .hero-section {
-            height: 80vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle, rgba(0,242,255,0.05) 0%, rgba(5,7,10,1) 80%);
-        }
-
-        /* Cards & Glassmorphism */
-        .card {
-            background: var(--card-bg);
-            border: 1px solid rgba(0, 242, 255, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s;
-        }
-        .card:hover { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 242, 255, 0.1); }
-
-        .stat-value { font-size: 2rem; color: var(--neon-blue); font-weight: bold; }
-        .status-on { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
-
-        /* Custom Buttons */
-        .btn-neon {
-            background: var(--neon-blue);
-            color: #000;
-            font-family: 'Orbitron';
-            font-weight: bold;
-            border: none;
-        }
-        .btn-neon:hover { background: #fff; box-shadow: 0 0 20px var(--neon-blue); }
-
-        .btn-kill {
-            border: 1px solid var(--neon-red);
-            color: var(--neon-red);
-            background: transparent;
-        }
-        .btn-kill:hover { background: var(--neon-red); color: #fff; }
-
-        .form-control { background: #1a1f26; border: 1px solid #333; color: white; }
-        .form-control:focus { background: #1a1f26; color: white; border-color: var(--neon-blue); box-shadow: none; }
+        .neon-glow-cyan { box-shadow: 0 0 15px rgba(0, 242, 255, 0.25); border-color: rgba(0, 242, 255, 0.4); }
+        .neon-glow-red { box-shadow: 0 0 15px rgba(255, 49, 49, 0.35); border-color: rgba(255, 49, 49, 0.5); }
+        .glass-panel { background: rgba(11, 19, 41, 0.65); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f2ff; }
     </style>
 </head>
-<body>
+<body class="h-full text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950">
 
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
-        <a class="navbar-brand font-orbitron text-info" href="#" onclick="showPage('home')">EdgeAero Shield</a>
-        <div class="ms-auto">
-            <span id="userTag" class="text-muted me-3 d-none">Admin: P. Charan Sai</span>
-            <button class="btn btn-outline-info btn-sm" id="loginBtn" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-            <button class="btn btn-outline-danger btn-sm d-none" id="logoutBtn" onclick="location.reload()">Logout</button>
-        </div>
-    </div>
-</nav>
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed bottom-10 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none"></div>
 
-<section id="page-home" class="page-section page-active hero-section text-center">
-    <div class="container">
-        <h1 class="display-2 font-orbitron mb-3">EdgeAero Shield</h1>
-        <p class="lead text-muted mb-4">Precision Edge-AI Monitoring for Next-Gen Aerospace Digital Twins.</p>
-        <button class="btn btn-neon px-5 py-3" onclick="triggerLogin()">Access Control Panel</button>
-    </div>
-</section>
-
-<section id="page-inventory" class="page-section container">
-    <h2 class="font-orbitron mb-4">A-GPU Fleet Status</h2>
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between mb-2">
-                    <h5 class="font-orbitron">A-GPU NODE 01</h5>
-                    <span id="node1-badge" class="text-secondary">● WAITING...</span>
+    <div class="min-h-full flex flex-col">
+        <header class="sticky top-0 z-40 w-full border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_10px_#00f2ff]"></div>
+                    <span class="font-orbitron text-xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent cursor-pointer" onclick="switchTab('dashboard')">
+                        EDGEAERO SHIELD
+                    </span>
                 </div>
-                <p class="small text-muted">Primary Propulsion Sensor Array</p>
-                <div class="mb-3">
-                    <div class="small text-secondary">Operational Status: <span id="node1-motor-status" class="text-info">UNKNOWN</span></div>
-                    <div class="progress" style="height: 5px; background: #222;">
-                        <div class="progress-bar bg-info" style="width: 100%"></div>
+                <div class="flex items-center gap-4">
+                    <div id="admin-tag" class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-400 font-mono">
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                        SECURE_ID: P. CHARAN SAI
+                    </div>
+                    <button id="auth-btn" onclick="openLoginModal()" class="px-4 py-1.5 rounded-lg text-sm font-semibold border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition duration-200">
+                        Authentication Panel
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8">
+            
+            <div id="tab-gateway" class="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-6">
+                <div class="space-y-3 max-w-xl">
+                    <h1 class="font-orbitron text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+                        Aerospace Edge-AI Monitoring Engine
+                    </h1>
+                    <p class="text-slate-400 font-light text-sm sm:text-base">
+                        Real-time telemetry diagnostics, vibration spectral streams, and deep neural processing client grids for advanced propulsion safety management.
+                    </p>
+                </div>
+                <button onclick="openLoginModal()" class="font-orbitron tracking-wide px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold rounded-xl shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.02] transition duration-200">
+                    INITIALIZE CONTROL PANELS
+                </button>
+            </div>
+
+            <div id="tab-dashboard" class="hidden space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-orbitron font-bold tracking-wider text-slate-200">A-GPU INSTANCE 01</h3>
+                                <span id="node-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-900 border border-slate-800 text-slate-400">
+                                    <span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span> CONNECTING
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Primary Propulsion Diagnostic Hub</p>
+                        </div>
+                        <div class="text-xs text-slate-400 flex justify-between items-center bg-slate-950/50 p-3 rounded-xl border border-slate-900">
+                            <span>Core Safety Loop State:</span>
+                            <span id="node-motor-status" class="font-mono text-cyan-400 font-bold uppercase">WAITING</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between space-y-4 opacity-50 select-none">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-orbitron font-bold tracking-wider text-slate-400">A-GPU INSTANCE 02</h3>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> LIVE
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Avionics Environment Node Matrix</p>
+                        </div>
+                        <div class="text-xs text-slate-500 flex justify-between items-center bg-slate-950/30 p-3 rounded-xl">
+                            <span>Inference Accuracy:</span>
+                            <span class="font-mono text-slate-300">94.5%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between items-stretch">
+                        <div class="text-center lg:text-left">
+                            <h4 class="font-orbitron text-xs font-bold tracking-widest text-rose-500">CRITICAL ACTUATOR</h4>
+                            <p class="text-xs text-slate-400 mt-1">Override manual breaker relays across the physical hardware array.</p>
+                        </div>
+                        <button id="relayBtn" class="mt-4 w-full font-orbitron py-3 text-sm font-bold tracking-widest border border-rose-500/40 text-rose-400 rounded-xl hover:bg-rose-500 hover:text-white transition duration-300">
+                            RELAY OVERRIDE BUS
+                        </button>
                     </div>
                 </div>
-                <button class="btn btn-outline-info btn-sm w-100" onclick="showPage('telemetry')">View Telemetry</button>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card p-4">
-                <div class="d-flex justify-content-between mb-2">
-                    <h5 class="font-orbitron">A-GPU NODE 02</h5>
-                    <span class="status-on">● LIVE</span>
-                </div>
-                <p class="small text-muted">Avionics Environmental Unit</p>
-                <div class="mb-3">
-                    <div class="small text-secondary">Inference Accuracy: 94.5%</div>
-                    <div class="progress" style="height: 5px; background: #222;">
-                        <div class="progress-bar bg-info" style="width: 94%"></div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Bus Voltage</span>
+                        <div id="val-v" class="font-orbitron text-3xl font-bold tracking-tight text-cyan-400">0.00V</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Draw Current</span>
+                        <div id="val-i" class="font-orbitron text-3xl font-bold tracking-tight text-cyan-400">0mA</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Calculated Power</span>
+                        <div id="val-p" class="font-orbitron text-3xl font-bold tracking-tight text-cyan-400">0mW</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Ripple Frequency</span>
+                        <div id="val-f" class="font-orbitron text-3xl font-bold tracking-tight text-emerald-400">0.0Hz</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Integrated Capacity</span>
+                        <div id="val-cap" class="font-orbitron text-3xl font-bold tracking-tight text-amber-400">0.0 mAh</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5 md:col-span-1">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">G-Force Vibration</span>
+                        <div id="val-vibe" class="font-orbitron text-3xl font-bold tracking-tight text-purple-400">0.0 m/s²</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl space-y-1.5 col-span-2 md:col-span-1 lg:col-span-2">
+                        <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Core Temperature</span>
+                        <div id="val-temp" class="font-orbitron text-3xl font-bold tracking-tight text-rose-400">0°C</div>
                     </div>
                 </div>
-                <button class="btn btn-outline-info btn-sm w-100" onclick="showPage('telemetry')">View Telemetry</button>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card p-4" style="opacity: 0.6;">
-                <div class="d-flex justify-content-between mb-2">
-                    <h5 class="font-orbitron">A-GPU NODE 03</h5>
-                    <span class="text-danger">● OFFLINE</span>
-                </div>
-                <p class="small text-muted">Tail Assembly Monitoring</p>
-                <button class="btn btn-secondary btn-sm w-100" disabled>Maintenance Required</button>
-            </div>
-        </div>
-    </div>
-</section>
 
-<section id="page-telemetry" class="page-section container">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h2 class="font-orbitron">Live Telemetry <span class="fs-6 text-info">/ Node-01</span></h2>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <button class="btn btn-kill px-4" id="relayBtn">RELAY OVERRIDE</button>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-md-3"><div class="card p-3 text-center"><div class="text-muted small">VOLTAGE</div><div class="stat-value" id="val-v">0.00V</div></div></div>
-        <div class="col-md-3"><div class="card p-3 text-center"><div class="text-muted small">CURRENT</div><div class="stat-value" id="val-i">0mA</div></div></div>
-        <div class="col-md-3"><div class="card p-3 text-center"><div class="text-muted small">POWER</div><div class="stat-value" id="val-p">0mW</div></div></div>
-        <div class="col-md-3"><div class="card p-3 text-center"><div class="text-muted small">RIPPLE FREQ</div><div class="stat-value" id="val-f" style="color: #39ff14;">0Hz</div></div></div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-md-4"><div class="card p-3 text-center"><div class="text-muted small">INTEGRATED CAPACITY</div><div class="stat-value" id="val-cap" style="color: #e5a93c;">0.0 mAh</div></div></div>
-        <div class="col-md-4"><div class="card p-3 text-center"><div class="text-muted small">G-FORCE VIBRATION</div><div class="stat-value" id="val-vibe">0.0 m/s²</div></div></div>
-        <div class="col-md-4"><div class="card p-3 text-center"><div class="text-muted small">CORE TEMPERATURE</div><div class="stat-value" id="val-temp">0°C</div></div></div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card p-4">
-                <h6 class="mb-3 font-orbitron">AI Signal Power Analysis</h6>
-                <canvas id="liveChart"></canvas>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card p-4 h-100">
-                <h6 class="mb-3 font-orbitron">System Event Log</h6>
-                <div id="logBox" style="font-family: monospace; font-size: 0.85rem; color: #00ff88; height: 300px; overflow-y: auto;">
-                    <div>> Booting EdgeAero Shield Interface...</div>
-                    <div>> Initializing Firebase Web SDK Client Application Stream...</div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl lg:col-span-2 space-y-4">
+                        <h4 class="font-orbitron text-sm font-bold tracking-wider text-slate-300">Edge Signal Spectral Wave Density</h4>
+                        <div class="relative w-full h-72">
+                            <canvas id="liveChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col h-full space-y-4">
+                        <h4 class="font-orbitron text-sm font-bold tracking-wider text-slate-300">Terminal Event Core Log</h4>
+                        <div id="logBox" class="flex-1 min-h-[240px] max-h-[240px] overflow-y-auto bg-slate-950/60 rounded-xl p-4 font-mono text-xs text-emerald-400 space-y-2 border border-slate-900">
+                            <div>&gt; System terminal ready.</div>
+                            <div>&gt; Establishing link structure...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-</section>
 
-<div class="modal fade" id="loginModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-4">
-            <h3 class="text-center font-orbitron mb-4">Admin Authentication</h3>
-            <form id="loginForm">
-                <div class="mb-3"><label class="form-label">Admin ID</label><input type="text" class="form-control" id="uid" required value="charan"></div>
-                <div class="mb-4"><label class="form-label">Passcode</label><input type="password" class="form-control" id="pwd" required value="1234"></div>
-                <button type="submit" class="btn btn-neon w-100">Enter Control Center</button>
+    <div id="loginModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="w-full max-w-md glass-panel rounded-2xl p-6 space-y-6 shadow-2xl border border-slate-800">
+            <div class="text-center space-y-1">
+                <h3 class="font-orbitron text-xl font-bold tracking-wide text-white">Security Verification</h3>
+                <p class="text-xs text-slate-400">Access authorization is required for relay write protocols.</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-1">Operator Identifier</label>
+                    <input type="text" id="uid" required value="charan" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium uppercase tracking-wider text-slate-400 mb-1">Passcode Token</label>
+                    <input type="password" id="pwd" required value="1234" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition">
+                </div>
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="submit" class="flex-1 font-orbitron py-3 text-sm font-bold tracking-wider bg-cyan-500 text-slate-950 rounded-xl hover:bg-cyan-400 transition">
+                        AUTHORIZE LINK
+                    </button>
+                    <button type="button" onclick="closeLoginModal()" class="px-4 py-3 text-sm text-slate-400 hover:text-white rounded-xl transition">
+                        Cancel
+                    </button>
+                </div>
             </form>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // Verified active database configurations
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3rFOSEQuXk85vUGtmiKHeoS1mhTapY0c",
+            authDomain: "live-data-5d103.firebaseapp.com",
+            databaseURL: "https://live-data-5d103-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "live-data-5d103",
+            storageBucket: "live-data-5d103.firebasestorage.app",
+            messagingSenderId: "580967076438",
+            appId: "1:580967076438:web:a3246e6f868afbfa9561f7"
+        };
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyD3rFOSEQuXk85vUGtmiKHeoS1mhTapY0c",
-        authDomain: "live-data-5d103.firebaseapp.com",
-        databaseURL: "https://live-data-5d103-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "live-data-5d103",
-        storageBucket: "live-data-5d103.firebasestorage.app",
-        messagingSenderId: "580967076438",
-        appId: "1:580967076438:web:a3246e6f868afbfa9561f7"
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    // Initialize Firebase Services
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        const telemetryRef = ref(db, 'EdgeAeroShield/LiveTelemetry');
+        const controlRef = ref(db, 'EdgeAeroShield/ControlOverride');
 
-    // References to database locations
-    const telemetryRef = ref(db, 'EdgeAeroShield/LiveTelemetry');
-    const controlRef = ref(db, 'EdgeAeroShield/ControlOverride');
+        let isRelayOverrideActive = false;
+        let isAuthenticated = false;
 
-    let remoteRelayTripped = false;
-
-    // PAGE NAVIGATION LOGIC
-    window.showPage = function(pageId) {
-        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('page-active'));
-        document.getElementById('page-' + pageId).classList.add('page-active');
-        window.scrollTo(0,0);
-    }
-
-    window.triggerLogin = function() {
-        const myModal = new bootstrap.Modal(document.getElementById('loginModal'));
-        myModal.show();
-    }
-
-    // AUTHENTICATION LOGIC
-    document.getElementById('loginForm').onsubmit = function(e) {
-        e.preventDefault();
-        if(document.getElementById('uid').value === "charan" && document.getElementById('pwd').value === "1234") {
-            bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
-            document.getElementById('loginBtn').classList.add('d-none');
-            document.getElementById('logoutBtn').classList.remove('d-none');
-            document.getElementById('userTag').classList.remove('d-none');
-            showPage('inventory');
-        } else { alert("Access Denied"); }
-    };
-
-    // CHART LOGIC
-    const ctx = document.getElementById('liveChart').getContext('2d');
-    const liveChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Power Consumption (mW)', borderColor: '#00f2ff', data: [], tension: 0.3, fill: true, backgroundColor: 'rgba(0, 242, 255, 0.05)' }] },
-        options: { responsive: true, scales: { x: { display: false }, y: { grid: { color: '#222' } } } }
-    });
-
-    function addLog(msg) {
-        const lb = document.getElementById('logBox');
-        lb.innerHTML += `<div>> ${new Date().toLocaleTimeString()}: ${msg}</div>`;
-        lb.scrollTop = lb.scrollHeight;
-    }
-
-    // ================= REALTIME DATA HUB EVENT STREAM =================
-    onValue(telemetryRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-            console.warn("No data discovered at reference path: EdgeAeroShield/LiveTelemetry");
-            return;
-        }
-
-        console.log("Incoming Data Stream Packet: ", data);
-
-        // FALLBACK MAPPING STRATEGY:
-        // Handles both structured objects ("data.Metrics.Voltage_V") and direct top-level primitives ("data.Voltage_V")
-        const motorState = data.MotorState || data.Status?.MotorState || "OFF";
-        const safetyTripped = data.SafetyTripped || data.Status?.SafetyTripped || false;
-        
-        const voltage = parseFloat(data.Voltage_V || data.Metrics?.Voltage_V || 0);
-        const current = parseFloat(data.Current_mA || data.Metrics?.Current_mA || 0);
-        const capacity = parseFloat(data.Capacity_mAh || data.Metrics?.Capacity_mAh || 0);
-        const vibration = parseFloat(data.Vibration_ms2 || data.Metrics?.Vibration_ms2 || 0);
-        const rippleFreq = parseFloat(data.RippleFreq_Hz || data.Metrics?.RippleFreq_Hz || 0);
-        const temperature = parseFloat(data.Temperature_C || data.Metrics?.Temperature_C || 0);
-        
-        const calculatedPower = (current * voltage);
-
-        // Update Fleet Status Badges
-        const badge = document.getElementById('node1-badge');
-        const listStateText = document.getElementById('node1-motor-status');
-        listStateText.innerText = motorState;
-
-        if (safetyTripped || motorState === "TRIPPED") {
-            badge.className = "text-danger";
-            badge.innerText = "● CRIT FAULT";
-            listStateText.className = "text-danger fw-bold";
-        } else {
-            badge.className = "status-on";
-            badge.innerText = "● LIVE";
-            listStateText.className = "text-success fw-bold";
-        }
-
-        // Render Values onto Dashboard Display Blocks
-        document.getElementById('val-v').innerText = voltage.toFixed(2) + "V";
-        document.getElementById('val-i').innerText = current.toFixed(0) + "mA";
-        document.getElementById('val-p').innerText = calculatedPower.toFixed(0) + "mW";
-        document.getElementById('val-f').innerText = rippleFreq.toFixed(1) + "Hz";
-        document.getElementById('val-cap').innerText = capacity.toFixed(1) + " mAh";
-        document.getElementById('val-vibe').innerText = vibration.toFixed(1) + " m/s²";
-        document.getElementById('val-temp').innerText = temperature.toFixed(0) + "°C";
-
-        // Append to Chart Dataset
-        if (liveChart.data.labels.length > 30) { 
-            liveChart.data.labels.shift(); 
-            liveChart.data.datasets[0].data.shift(); 
-        }
-        liveChart.data.labels.push("");
-        liveChart.data.datasets[0].data.push(calculatedPower);
-        liveChart.update();
-    });
-
-    // ================= REVERSE STREAM: WRITE CONTROL TO CORE RELAY =================
-    document.getElementById('relayBtn').onclick = function() {
-        remoteRelayTripped = !remoteRelayTripped;
-        
-        set(controlRef, {
-            ManualKillSwitch: remoteRelayTripped,
-            Timestamp: Date.now()
-        }).then(() => {
-            if (remoteRelayTripped) {
-                this.innerHTML = "RELAY: CUT INITIATED";
-                this.className = "btn btn-danger px-4";
-                addLog("COMMAND SENT: Remote Manual Power Cut Transmitted");
-            } else {
-                this.innerHTML = "RELAY OVERRIDE";
-                this.className = "btn btn-kill px-4";
-                addLog("COMMAND SENT: Clear Override / Reset Command Sent");
+        // VISUAL VIEW TAB MANAGEMENT SWITCH
+        window.switchTab = function(tabId) {
+            if (tabId === 'dashboard' && !isAuthenticated) {
+                openLoginModal();
+                return;
             }
-        }).catch((err) => {
-            console.error("Firebase write fault: ", err);
-            addLog("ERR: Command failed to sync with Cloud Node.");
+            if (tabId === 'dashboard') {
+                document.getElementById('tab-gateway').classList.add('hidden');
+                document.getElementById('tab-dashboard').classList.remove('hidden');
+            } else {
+                document.getElementById('tab-dashboard').classList.add('hidden');
+                document.getElementById('tab-gateway').classList.remove('hidden');
+            }
+        }
+
+        // MODAL TOGGLES
+        window.openLoginModal = function() { document.getElementById('loginModal').classList.remove('hidden'); }
+        window.closeLoginModal = function() { document.getElementById('loginModal').classList.add('hidden'); }
+
+        // GATEKEEPER VALIDATION ROUTINES
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            const inputUser = document.getElementById('uid').value;
+            const inputPass = document.getElementById('pwd').value;
+
+            if (inputUser === "charan" && inputPass === "1234") {
+                isAuthenticated = true;
+                closeLoginModal();
+                document.getElementById('auth-btn').innerText = "Disconnect Node Link";
+                document.getElementById('auth-btn').onclick = () => location.reload();
+                document.getElementById('admin-tag').classList.remove('hidden');
+                switchTab('dashboard');
+                addLog("Security baseline passed. Interactive telemetry bridge open.");
+            } else {
+                alert("Authorization Denied: Invalid Security Identifier Credentials.");
+                addLog("CRITICAL: Unauthorized edge validation bypass attempted.");
+            }
+        };
+
+        // EVENT LOG ENGINE
+        function addLog(msg) {
+            const lb = document.getElementById('logBox');
+            const timeStr = new Date().toLocaleTimeString();
+            lb.innerHTML += `<div class="leading-relaxed text-slate-300"><span class="text-cyan-500 font-bold">&gt; ${timeStr}</span>: ${msg}</div>`;
+            lb.scrollTop = lb.scrollHeight;
+        }
+
+        // CHART CANVAS COMPILATION SETUP
+        const chartElement = document.getElementById('liveChart').getContext('2d');
+        const liveChart = new Chart(chartElement, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Dynamic Realtime Power Density (mW)',
+                    borderColor: '#00f2ff',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    data: [],
+                    tension: 0.25,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 242, 255, 0.03)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { 
+                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Orbitron' } }
+                    }
+                }
+            }
         });
-    };
-</script>
+
+        // ================= STREAM PROCESSING PIPELINE (READ) =================
+        onValue(telemetryRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            // Universal fallback layer resolving alternative payload definitions
+            const motorState = data.MotorState || data.Status?.MotorState || "OFF";
+            const safetyTripped = data.SafetyTripped || data.Status?.SafetyTripped || false;
+            
+            const voltage = parseFloat(data.Voltage_V || data.Metrics?.Voltage_V || 0);
+            const current = parseFloat(data.Current_mA || data.Metrics?.Current_mA || 0);
+            const capacity = parseFloat(data.Capacity_mAh || data.Metrics?.Capacity_mAh || 0);
+            const vibration = parseFloat(data.Vibration_ms2 || data.Metrics?.Vibration_ms2 || 0);
+            const rippleFreq = parseFloat(data.RippleFreq_Hz || data.Metrics?.RippleFreq_Hz || 0);
+            const temperature = parseFloat(data.Temperature_C || data.Metrics?.Temperature_C || 0);
+            
+            const power = (current * voltage);
+
+            // Dynamic badge mapping states
+            const badge = document.getElementById('node-badge');
+            const statusLabel = document.getElementById('node-motor-status');
+            statusLabel.innerText = motorState;
+
+            if (safetyTripped || motorState === "TRIPPED") {
+                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping"></span> HW_FAULT`;
+                statusLabel.className = "font-mono text-rose-500 font-black uppercase";
+            } else {
+                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span> LINE_ACTIVE`;
+                statusLabel.className = "font-mono text-emerald-400 font-bold uppercase";
+            }
+
+            // Output data mappings to document cards
+            document.getElementById('val-v').innerText = voltage.toFixed(2) + "V";
+            document.getElementById('val-i').innerText = current.toFixed(0) + "mA";
+            document.getElementById('val-p').innerText = power.toFixed(0) + "mW";
+            document.getElementById('val-f').innerText = rippleFreq.toFixed(1) + "Hz";
+            document.getElementById('val-cap').innerText = capacity.toFixed(1) + " mAh";
+            document.getElementById('val-vibe').innerText = vibration.toFixed(1) + " m/s²";
+            document.getElementById('val-temp').innerText = temperature.toFixed(0) + "°C";
+
+            // Push metrics update to analytical dataset
+            if (liveChart.data.labels.length > 35) {
+                liveChart.data.labels.shift();
+                liveChart.data.datasets[0].data.shift();
+            }
+            liveChart.data.labels.push("");
+            liveChart.data.datasets[0].data.push(power);
+            liveChart.update();
+        });
+
+        // ================= OVERRIDE TRANSACTION ENGINE (WRITE) =================
+        document.getElementById('relayBtn').onclick = function() {
+            isRelayOverrideActive = !isRelayOverrideActive;
+
+            set(controlRef, {
+                ManualKillSwitch: isRelayOverrideActive,
+                Timestamp: Date.now()
+            }).then(() => {
+                if (isRelayOverrideActive) {
+                    this.innerText = "HALT EXECUTION SIGNAL ACTIVE";
+                    this.className = "mt-4 w-full font-orbitron py-3 text-sm font-bold tracking-widest bg-rose-600 border border-rose-500 text-white rounded-xl hover:bg-rose-700 transition duration-300 neon-glow-red";
+                    addLog("CRITICAL EXECUTION: Remote manual power breaker cut deployed to core database routing.");
+                } else {
+                    this.innerText = "RELAY OVERRIDE BUS";
+                    this.className = "mt-4 w-full font-orbitron py-3 text-sm font-bold tracking-widest border border-rose-500/40 text-rose-400 rounded-xl hover:bg-rose-500 hover:text-white transition duration-300";
+                    addLog("RECOVERY: Clear command signal compiled. Breaker relay locks reset.");
+                }
+            }).catch((error) => {
+                console.error("Transmission interruption: ", error);
+                addLog("ERR: Upstream network connection timed out during execution override request.");
+            });
+        };
+    </script>
 </body>
 </html>
