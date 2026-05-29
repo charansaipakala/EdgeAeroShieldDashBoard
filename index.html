@@ -208,26 +208,24 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // 1. Paste Your Personal Firebase Configuration Parameters Here
-const firebaseConfig = {
-  apiKey: "AIzaSyD3rFOSEQuXk85vUGtmiKHeoS1mhTapY0c",
-  authDomain: "live-data-5d103.firebaseapp.com",
-  databaseURL: "https://live-data-5d103-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "live-data-5d103",
-  storageBucket: "live-data-5d103.firebasestorage.app",
-  messagingSenderId: "580967076438",
-  appId: "1:580967076438:web:a3246e6f868afbfa9561f7"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3rFOSEQuXk85vUGtmiKHeoS1mhTapY0c",
+        authDomain: "live-data-5d103.firebaseapp.com",
+        databaseURL: "https://live-data-5d103-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "live-data-5d103",
+        storageBucket: "live-data-5d103.firebasestorage.app",
+        messagingSenderId: "580967076438",
+        appId: "1:580967076438:web:a3246e6f868afbfa9561f7"
+    };
 
     // Initialize Firebase Services
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // References to your paths inside Firebase Realtime Database
+    // References to database locations
     const telemetryRef = ref(db, 'EdgeAeroShield/LiveTelemetry');
     const controlRef = ref(db, 'EdgeAeroShield/ControlOverride');
 
-    // State Variables for Tracking Global Elements
     let remoteRelayTripped = false;
 
     // PAGE NAVIGATION LOGIC
@@ -271,22 +269,28 @@ const firebaseConfig = {
     // ================= REALTIME DATA HUB EVENT STREAM =================
     onValue(telemetryRef, (snapshot) => {
         const data = snapshot.val();
-        if (!data) return;
+        if (!data) {
+            console.warn("No data discovered at reference path: EdgeAeroShield/LiveTelemetry");
+            return;
+        }
 
-        // Parse runtime metrics strings from structural json containers
-        const motorState = data.Status?.MotorState || "OFF";
-        const safetyTripped = data.Status?.SafetyTripped || false;
-        
-        const voltage = parseFloat(data.Metrics?.Voltage_V || 0);
-        const current = parseFloat(data.Metrics?.Current_mA || 0);
-        const capacity = parseFloat(data.Metrics?.Capacity_mAh || 0);
-        const vibration = parseFloat(data.Metrics?.Vibration_ms2 || 0);
-        const rippleFreq = parseFloat(data.Metrics?.RippleFreq_Hz || 0);
-        const temperature = parseFloat(data.Metrics?.Temperature_C || 0);
-        
-        const calculatedPower = (current * voltage); // mW Calculation
+        console.log("Incoming Data Stream Packet: ", data);
 
-        // Update Fleet Inventory View Badges
+        // FALLBACK MAPPING STRATEGY:
+        // Handles both structured objects ("data.Metrics.Voltage_V") and direct top-level primitives ("data.Voltage_V")
+        const motorState = data.MotorState || data.Status?.MotorState || "OFF";
+        const safetyTripped = data.SafetyTripped || data.Status?.SafetyTripped || false;
+        
+        const voltage = parseFloat(data.Voltage_V || data.Metrics?.Voltage_V || 0);
+        const current = parseFloat(data.Current_mA || data.Metrics?.Current_mA || 0);
+        const capacity = parseFloat(data.Capacity_mAh || data.Metrics?.Capacity_mAh || 0);
+        const vibration = parseFloat(data.Vibration_ms2 || data.Metrics?.Vibration_ms2 || 0);
+        const rippleFreq = parseFloat(data.RippleFreq_Hz || data.Metrics?.RippleFreq_Hz || 0);
+        const temperature = parseFloat(data.Temperature_C || data.Metrics?.Temperature_C || 0);
+        
+        const calculatedPower = (current * voltage);
+
+        // Update Fleet Status Badges
         const badge = document.getElementById('node1-badge');
         const listStateText = document.getElementById('node1-motor-status');
         listStateText.innerText = motorState;
@@ -294,14 +298,14 @@ const firebaseConfig = {
         if (safetyTripped || motorState === "TRIPPED") {
             badge.className = "text-danger";
             badge.innerText = "● CRIT FAULT";
-            listStateText.className = "text-danger font-bold";
+            listStateText.className = "text-danger fw-bold";
         } else {
             badge.className = "status-on";
             badge.innerText = "● LIVE";
-            listStateText.className = "text-success";
+            listStateText.className = "text-success fw-bold";
         }
 
-        // Update Primary Live Dash Numerical Text Containers
+        // Render Values onto Dashboard Display Blocks
         document.getElementById('val-v').innerText = voltage.toFixed(2) + "V";
         document.getElementById('val-i').innerText = current.toFixed(0) + "mA";
         document.getElementById('val-p').innerText = calculatedPower.toFixed(0) + "mW";
@@ -310,7 +314,7 @@ const firebaseConfig = {
         document.getElementById('val-vibe').innerText = vibration.toFixed(1) + " m/s²";
         document.getElementById('val-temp').innerText = temperature.toFixed(0) + "°C";
 
-        // Dynamic Chart Updates based on calculated values
+        // Append to Chart Dataset
         if (liveChart.data.labels.length > 30) { 
             liveChart.data.labels.shift(); 
             liveChart.data.datasets[0].data.shift(); 
@@ -324,7 +328,6 @@ const firebaseConfig = {
     document.getElementById('relayBtn').onclick = function() {
         remoteRelayTripped = !remoteRelayTripped;
         
-        // Push state directly to Firebase to allow the ESP32 safety loop to handle it
         set(controlRef, {
             ManualKillSwitch: remoteRelayTripped,
             Timestamp: Date.now()
@@ -339,7 +342,7 @@ const firebaseConfig = {
                 addLog("COMMAND SENT: Clear Override / Reset Command Sent");
             }
         }).catch((err) => {
-            console.error("Firebase write execution fault: ", err);
+            console.error("Firebase write fault: ", err);
             addLog("ERR: Command failed to sync with Cloud Node.");
         });
     };
